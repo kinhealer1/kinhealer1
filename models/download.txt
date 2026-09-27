@@ -3,6 +3,7 @@
 # Handy for models hosted on Google Drive, Hugging Face or other sites, or files too big to
 # upload through the GitHub website (25 MB limit there).
 # Lines starting with # are ignored.
+# Other .txt files in this folder are read the same way (e.g. one per model).
 #
 # Google Drive: in Drive, tap the file's menu > Share, set General access to
 # "Anyone with the link", then Copy link and paste it here. Share each file

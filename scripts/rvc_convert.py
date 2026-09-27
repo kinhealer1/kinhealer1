@@ -80,9 +80,9 @@ def download_google_drive(file_id, url):
 
 def download_models():
     lines = []
+    # download.txt, plus any other .txt in the folder (one file per model is fine).
     for folder in MODEL_DIRS:
-        list_file = folder / "download.txt"
-        if list_file.is_file():
+        for list_file in sorted(folder.glob("*.txt")):
             lines += list_file.read_text().splitlines()
     for line in lines:
         url = line.strip()

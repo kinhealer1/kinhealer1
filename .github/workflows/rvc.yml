@@ -82,7 +82,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: models/.downloads
-          key: voice-models-${{ hashFiles('models/download.txt', 'model/download.txt') }}
+          key: voice-models-${{ hashFiles('models/*.txt', 'model/*.txt') }}
 
       - name: Convert
         env:
