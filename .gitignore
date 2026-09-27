@@ -1,0 +1,4 @@
+# ruflo local runtime data
+.claude-flow/
+.swarm/
+ruvector.db
