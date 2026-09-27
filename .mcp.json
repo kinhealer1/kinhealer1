@@ -2,11 +2,10 @@
   "mcpServers": {
     "ruflo": {
       "type": "stdio",
-      "command": "npx",
+      "command": "sh",
       "args": [
-        "ruflo@latest",
-        "mcp",
-        "start"
+        "-c",
+        "if command -v ruflo >/dev/null 2>&1; then exec ruflo mcp start; else exec npx -y ruflo@3.46.1 mcp start; fi"
       ],
       "env": {}
     }
