@@ -16,7 +16,7 @@ topic ─► script ─► voice ─► footage ─► captions + render ─► 
 |---|---|---|
 | Scheduler + render machine | GitHub Actions (2,000 min/month free on private repos, unlimited on public) | free |
 | Script | ruflo swarm in Claude Code, **or** Gemini / Groq free API tier, **or** local Ollama, **or** a no-key Wikipedia template | free |
-| Voice | `edge-tts` (Microsoft Edge neural voices, no key) | free |
+| Voice | `edge-tts` (Microsoft Edge neural voices, no key), falls back to Gemini TTS (one request per video, 4 models × 10 free requests/day), then espeak-ng | free |
 | Footage | Pexels API (free key), falls back to a Wikimedia image, then a generated background | free |
 | Captions and editing | ffmpeg + libass | free |
 | Upload | YouTube Data API v3 (about 6 uploads/day on the default quota) | free |
