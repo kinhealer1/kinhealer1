@@ -1,0 +1,8 @@
+# Optional: links to models the Action should download before converting.
+# One URL per line: a .pth, a .index, or a .zip containing them.
+# Handy for models hosted on Hugging Face or other sites, or files too big to
+# upload through the GitHub website (25 MB limit there).
+# Lines starting with # are ignored.
+#
+# Example:
+# https://huggingface.co/someone/some-voice/resolve/main/some-voice.zip

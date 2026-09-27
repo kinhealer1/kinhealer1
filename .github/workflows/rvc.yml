@@ -1,0 +1,112 @@
+name: RVC voice conversion
+
+# Runs when you add audio to input/, add models, or change settings.
+# Converted files are committed to output/<model>/ and attached to the run.
+on:
+  push:
+    paths:
+      - "input/**"
+      - "models/**"
+      - "rvc-settings.env"
+      - "scripts/rvc_convert.py"
+      - ".github/workflows/rvc.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One run at a time per branch so result commits never race each other.
+concurrency:
+  group: rvc-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # Pinned RVC version; bump deliberately after checking the new release works.
+  RVC_REF: 81eed5e8f68b6bed1789f682fe78cdd324495afc
+  HF_BASE: https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main
+
+jobs:
+  convert:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check out RVC
+        uses: actions/checkout@v5
+        with:
+          repository: RVC-Project/Retrieval-based-Voice-Conversion-WebUI
+          ref: ${{ env.RVC_REF }}
+          path: rvc
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg libsndfile1 libportaudio2
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: rvc/requirments_cpu_py312.txt
+
+      - name: Install RVC dependencies (CPU)
+        run: |
+          # Swap the default mainland-China mirrors for the official indexes.
+          sed -e 's#https://mirrors.pku.edu.cn/pypi/simple#https://pypi.org/simple#' \
+              -e 's#https://mirrors.nju.edu.cn/pytorch/whl/cpu#https://download.pytorch.org/whl/cpu#' \
+              rvc/requirments_cpu_py312.txt > requirements-rvc.txt
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-rvc.txt
+
+      - name: Cache RVC base models
+        id: base-models
+        uses: actions/cache@v4
+        with:
+          path: |
+            rvc/assets/hubert_base
+            rvc/assets/rmvpe
+          key: rvc-base-models-v1
+
+      - name: Download RVC base models
+        if: steps.base-models.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p rvc/assets/hubert_base rvc/assets/rmvpe
+          for f in config.json preprocessor_config.json pytorch_model.bin; do
+            curl -fL --retry 3 -o "rvc/assets/hubert_base/$f" "$HF_BASE/hubert_base/$f"
+          done
+          curl -fL --retry 3 -o rvc/assets/rmvpe/rmvpe.pt "$HF_BASE/rmvpe.pt"
+
+      - name: Cache downloaded voice models
+        uses: actions/cache@v4
+        with:
+          path: models/.downloads
+          key: voice-models-${{ hashFiles('models/download.txt') }}
+
+      - name: Convert
+        env:
+          RVC_DIR: rvc
+        run: |
+          set -a; source rvc-settings.env; set +a
+          python scripts/rvc_convert.py
+
+      - name: Commit results
+        run: |
+          git add output
+          if git diff --cached --quiet; then
+            echo "No new output."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Add converted audio"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Attach results to the run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: converted-audio
+          path: output/
+          if-no-files-found: ignore
