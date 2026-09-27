@@ -9,6 +9,7 @@ voice models automatically. Add files and push, then collect the results. Nothin
    file (for example `models/MyVoice.pth` and `models/added_IVF123_Flat_nprobe_1_MyVoice_v2.index`).
    The `.index` is optional but improves quality. Its name only has to contain the model name,
    or it can sit in the same folder as the `.pth`.
+   A folder named `model/` works too.
 2. **Add audio** to `input/` (wav, mp3, flac, m4a, ogg and more). Use clean vocals only: remove
    music and background noise first for best results.
 3. **Push.** The *RVC voice conversion* workflow starts on its own (see the **Actions** tab).

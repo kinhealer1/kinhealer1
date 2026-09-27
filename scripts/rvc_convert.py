@@ -1,4 +1,4 @@
-"""Convert new audio in input/ with the RVC models in models/.
+"""Convert new audio in input/ with the RVC models in models/ (or model/).
 
 Called by .github/workflows/rvc.yml. Layout:
   input/<file>          -> converted with DEFAULT_MODEL
@@ -17,6 +17,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 MODELS = ROOT / "models"
+# model/ is accepted too, since it is an easy slip when uploading.
+MODEL_DIRS = [MODELS, ROOT / "model"]
 INPUT = ROOT / "input"
 OUTPUT = ROOT / "output"
 RVC_CLI = Path(os.environ.get("RVC_DIR", ROOT / "rvc")) / "infer" / "cli.py"
@@ -34,10 +36,12 @@ def setting(name, default):
 
 
 def download_models():
-    list_file = MODELS / "download.txt"
-    if not list_file.is_file():
-        return
-    for line in list_file.read_text().splitlines():
+    lines = []
+    for folder in MODEL_DIRS:
+        list_file = folder / "download.txt"
+        if list_file.is_file():
+            lines += list_file.read_text().splitlines()
+    for line in lines:
         url = line.strip()
         if not url or url.startswith("#"):
             continue
@@ -54,9 +58,13 @@ def download_models():
                     archive.extractall(extract_dir)
 
 
+def model_files(pattern):
+    return [path for folder in MODEL_DIRS for path in sorted(folder.rglob(pattern))]
+
+
 def find_models():
     models = {}
-    for path in sorted(MODELS.rglob("*.pth")):
+    for path in model_files("*.pth"):
         models.setdefault(path.stem, path)
     return models
 
@@ -64,7 +72,7 @@ def find_models():
 def find_index(model_path):
     stem = model_path.stem.lower()
     candidates = [
-        path for path in MODELS.rglob("*.index")
+        path for path in model_files("*.index")
         if stem in path.stem.lower() and "trained" not in path.stem.lower()
     ]
     # Fall back to an index sitting next to the model (e.g. from the same zip).

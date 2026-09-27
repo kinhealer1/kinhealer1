@@ -7,6 +7,7 @@ on:
     paths:
       - "input/**"
       - "models/**"
+      - "model/**"
       - "rvc-settings.env"
       - "scripts/rvc_convert.py"
       - ".github/workflows/rvc.yml"
@@ -81,7 +82,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: models/.downloads
-          key: voice-models-${{ hashFiles('models/download.txt') }}
+          key: voice-models-${{ hashFiles('models/download.txt', 'model/download.txt') }}
 
       - name: Convert
         env:
