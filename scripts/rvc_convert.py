@@ -23,7 +23,8 @@ MODELS = ROOT / "models"
 MODEL_DIRS = [MODELS, ROOT / "model"]
 INPUT = ROOT / "input"
 OUTPUT = ROOT / "output"
-RVC_CLI = Path(os.environ.get("RVC_DIR", ROOT / "rvc")) / "infer" / "cli.py"
+RVC_DIR = (ROOT / os.environ.get("RVC_DIR", "rvc")).resolve()
+RVC_CLI = RVC_DIR / "infer" / "cli.py"
 DOWNLOADS = MODELS / ".downloads"
 
 AUDIO_EXTENSIONS = {
@@ -200,7 +201,10 @@ def main():
             if index_path is not None:
                 command += ["--index", str(index_path)]
             print("::group::%s: %d file(s)" % (model_name, len(files)))
-            result = subprocess.run(command)
+            # The CLI imports RVC's own packages (infer, configs), so put RVC on the path.
+            env = dict(os.environ)
+            env["PYTHONPATH"] = os.pathsep.join(filter(None, [str(RVC_DIR), env.get("PYTHONPATH")]))
+            result = subprocess.run(command, env=env)
             print("::endgroup::")
             if result.returncode != 0:
                 print("::error::Conversion with %s failed" % model_name)
