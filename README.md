@@ -3,7 +3,16 @@
 Converts audio with your [RVC](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI)
 voice models automatically. Add files and push, then collect the results. Nothing to install.
 
-## How to use
+## Training a model (Google Colab)
+
+Open [`colab/RVC_train.ipynb`](colab/RVC_train.ipynb) in Colab:
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/kinhealer1/kinhealer1/blob/main/colab/RVC_train.ipynb)
+(if the repo is private, open Colab, choose **File → Open notebook → GitHub**, tick
+*Include private repos* and pick the notebook). It walks you through it step by step: put 10–30 minutes
+of clean recordings in Google Drive, click through three cells, and train in the RVC WebUI on a free GPU.
+The finished `.pth` and `.index` go in `models/` here.
+
+## Converting audio (GitHub Action)
 
 1. **Add your model** to `models/`: the `.pth` file and, if you have it, the matching `.index`
    file (for example `models/MyVoice.pth` and `models/added_IVF123_Flat_nprobe_1_MyVoice_v2.index`).
@@ -46,5 +55,5 @@ Changing it starts a new run, but only audio without an output yet gets converte
 
 - It runs on CPU, so expect roughly one to a few minutes per minute of audio, plus about
   5 minutes of setup per run (faster once cached).
-- Inference only. Training a new model needs a GPU (e.g. Google Colab).
+- The Action only converts; train models with the Colab notebook above.
 - Private repos get 2,000 free Actions minutes per month; public repos are unlimited.
