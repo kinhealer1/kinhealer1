@@ -11,7 +11,7 @@ from .config import ROOT
 UA = {"User-Agent": "faceless-yt-bot/1.0 (https://github.com/kinhealer1/kinhealer1)"}
 
 PROVIDERS = {
-    "gemini": ("https://generativelanguage.googleapis.com/v1beta/openai", "GEMINI_API_KEY", "gemini-2.5-flash"),
+    "gemini": ("https://generativelanguage.googleapis.com/v1beta/openai", "GEMINI_API_KEY", "gemini-flash-latest"),
     "groq": ("https://api.groq.com/openai/v1", "GROQ_API_KEY", "llama-3.3-70b-versatile"),
     "ollama": ("http://localhost:11434/v1", None, "llama3.2"),
 }
