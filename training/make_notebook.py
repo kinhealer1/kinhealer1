@@ -103,6 +103,10 @@ print("Setup done.")
 '''
 
 PREPARE = r'''#@title 3. Prepare the recordings (5-15 minutes) { display-mode: "form" }
+import os, re, glob, json, shutil, random, subprocess, time
+if "RVC" not in globals():
+    raise SystemExit("Colab restarted and forgot the earlier steps. Choose Runtime > Run all "
+                     "(it carries on from your saved progress).")
 NAME = MODEL_NAME.strip()
 if not re.fullmatch(r"[A-Za-z0-9_-]+", NAME):
     raise SystemExit("MODEL_NAME can only use letters, numbers, - and _.")
@@ -163,6 +167,10 @@ for path in indexes:
 '''
 
 TRAIN = r'''#@title 4. Train (about 1-2 hours for 200 epochs) { display-mode: "form" }
+import os, re, glob, json, shutil, random, subprocess, time
+if "EXP" not in globals():
+    raise SystemExit("Colab restarted and forgot the earlier steps. Choose Runtime > Run all "
+                     "(it carries on from your saved progress).")
 # Same file list and config the RVC web UI writes before training.
 names = None
 for folder in ("0_gt_wavs", "3_feature768", "2a_f0", "2b-f0nsf"):
@@ -225,6 +233,10 @@ print("\nDone! Your model:", finals[0])
 '''
 
 FINISH = r'''#@title 5. Your files { display-mode: "form" }
+import os, re, glob, json, shutil, random, subprocess, time
+if "OUT" not in globals():
+    raise SystemExit("Colab restarted and forgot the earlier steps. Choose Runtime > Run all "
+                     "(it carries on from your saved progress).")
 for path in sorted(glob.glob(OUT + "/**/*", recursive=True)):
     if os.path.isfile(path):
         print("%8.1f MB  %s" % (os.path.getsize(path) / 1e6, path.replace("/content/drive/MyDrive/", "My Drive/")))
