@@ -44,13 +44,19 @@ RVC_REF = "81eed5e8f68b6bed1789f682fe78cdd324495afc"  # same RVC version as the 
 RVC = "/content/RVC"
 PY = "/content/rvcenv/bin/python"
 HF = "https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main"
-ENV = dict(os.environ, PYTHONPATH=RVC)
+# PYTHONSAFEPATH: RVC's scripts sit next to train/train.py, which would otherwise
+# shadow the "train" package and break their imports ("cannot import name 'utils'").
+ENV = dict(os.environ, PYTHONPATH=RVC, PYTHONSAFEPATH="1")
 
 def sh(cmd, cwd=None):
+    # Print the program's output here: Colab doesn't show it otherwise, errors included.
     print("$", cmd)
-    result = subprocess.run(cmd, shell=True, cwd=cwd, env=ENV)
-    if result.returncode:
-        raise RuntimeError("This step failed (exit code %d). The lines above say why." % result.returncode)
+    process = subprocess.Popen(cmd, shell=True, cwd=cwd, env=ENV, text=True,
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    for line in process.stdout:
+        print(line, end="")
+    if process.wait():
+        raise RuntimeError("This step failed (exit code %d). The lines above say why." % process.returncode)
 
 gpu = subprocess.run("nvidia-smi --query-gpu=name --format=csv,noheader", shell=True,
                      capture_output=True, text=True).stdout.strip()
