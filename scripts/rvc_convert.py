@@ -117,9 +117,12 @@ def model_files(pattern):
 
 
 def is_training_checkpoint(path):
-    # RVC training also saves G_400.pth / D_400.pth (or Name_G_400.pth); these
-    # can't convert audio, only the exported model can.
-    return re.search(r"(^|_)[GD]_\d+$", path.stem) is not None
+    # RVC training also saves G_400.pth / D_400.pth (or Name_G_400.pth), and
+    # starts from the pretrained bases G40k.pth / f0D48k.pth etc. None of
+    # these can convert audio; only the exported voice model can.
+    stem = path.stem
+    return (re.search(r"(^|_)[GD]_\d+$", stem) is not None
+            or re.fullmatch(r"(f0)?[GD](32|40|48)k", stem) is not None)
 
 
 def find_models():
