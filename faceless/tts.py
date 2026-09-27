@@ -130,16 +130,26 @@ def speak(text, cfg, out):
 def narrate(scenes, cfg, workdir, offline=False):
     """Voice each scene separately so we know exactly how long each visual must last."""
     engine = None
-    for i, scene in enumerate(scenes):
+    i = 0
+    while i < len(scenes):
+        scene = scenes[i]
         out = str(workdir / f"voice_{i:02d}.mp3")
         if offline:
             words = _silent(scene["text"], out)
         else:
-            if engine and engine != "edge-tts":
-                cfg = {**cfg, "tts": engine}  # keep one voice for the whole video
-            engine, words = speak(scene["text"], cfg, out)
+            used, words = speak(scene["text"], cfg, out)
+            if engine and used != engine:
+                # an engine gave out mid-video: re-voice from the start so there is only one narrator
+                print(f"[tts] switched {engine} -> {used}, re-voicing earlier scenes")
+                cfg = {**cfg, "tts": "gemini" if used == "gemini" else "espeak"}
+                engine, i = used, 0
+                continue
+            engine = used
+            if engine != "edge-tts":
+                cfg = {**cfg, "tts": "gemini" if engine == "gemini" else "espeak"}
             print(f"[tts] scene {i}: {engine}")
         scene["audio"] = out
         scene["words"] = words
         scene["duration"] = duration(out) + 0.25  # small breath between scenes
+        i += 1
     return scenes
