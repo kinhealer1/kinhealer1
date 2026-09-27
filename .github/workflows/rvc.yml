@@ -101,7 +101,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Add converted audio"
-          git pull --rebase origin "${GITHUB_REF_NAME}"
+          # If an earlier run saved the same file meanwhile, keep this run's
+          # version: it was made from the newer settings.
+          git pull --rebase -X theirs origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"
 
       - name: Attach results to the run
