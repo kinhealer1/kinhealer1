@@ -1,0 +1,13 @@
+{
+  "title": "The Octopus Has Three Hearts (And Blue Blood)",
+  "description": "Octopuses are stranger than any alien in the movies. Here is why their bodies work so differently from ours.",
+  "tags": ["octopus", "ocean facts", "animal facts", "did you know", "science"],
+  "scenes": [
+    {"text": "An octopus has three hearts, and one of them stops every time it swims.", "search": ["octopus", "octopus swimming"]},
+    {"text": "Two hearts pump blood through the gills. The third pushes it around the rest of the body.", "search": ["octopus close up", "coral reef"]},
+    {"text": "Its blood is blue, because it uses copper instead of iron to carry oxygen.", "search": ["deep blue ocean", "underwater light"]},
+    {"text": "Two thirds of its neurons live in its arms, so each arm can taste, touch and decide on its own.", "search": ["octopus tentacles", "octopus arm"]},
+    {"text": "And it can change colour in a fraction of a second, even though it is colour blind.", "search": ["octopus camouflage", "cuttlefish color"]},
+    {"text": "Which octopus fact surprised you most? Tell me in the comments.", "search": ["ocean waves", "sea surface"]}
+  ]
+}

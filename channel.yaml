@@ -1,0 +1,12 @@
+# Channel settings. Everything here is free to use.
+niche: "surprising facts about history, science, animals and space"
+voice: en-US-AndrewNeural   # list all voices: edge-tts --list-voices
+voice_rate: "+8%"
+format: short               # short = vertical <60s, long = 16:9
+target_words: 130           # ~50 seconds of narration
+privacy: private            # start private, review a few, then switch to public
+category_id: "27"           # 27 = Education, 28 = Science & Technology, 24 = Entertainment
+made_for_kids: false
+subtitle_font: DejaVu Sans
+llm:
+  provider: auto            # auto | gemini | groq | ollama (auto falls back to a Wikipedia template)

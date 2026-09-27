@@ -1,0 +1,26 @@
+{
+  "name": "faceless-script-swarm",
+  "description": "Research trending, evergreen topics for the channel niche and write fact-checked Shorts scripts into scripts/queue/ for the free render pipeline.",
+  "stages": [
+    {
+      "id": "research",
+      "name": "Topic research",
+      "agent": "researcher",
+      "task": "Read channel.yaml (niche) and history.jsonl (already covered). Propose 5 fresh topics with high curiosity value that are filmable with generic stock footage. For each, collect 4-6 verifiable facts with a source URL (Wikipedia or better)."
+    },
+    {
+      "id": "write",
+      "name": "Script writing",
+      "agent": "coder",
+      "dependsOn": ["research"],
+      "task": "For each topic write scripts/queue/<YYYYMMDD>-<slug>.json matching scripts/example.json: 110-140 words total, first sentence is the hook, 5-8 scenes, 1-3 concrete stock-footage search terms per scene, last scene asks a question. Put sources at the end of the description."
+    },
+    {
+      "id": "review",
+      "name": "Fact check and policy review",
+      "agent": "reviewer",
+      "dependsOn": ["write"],
+      "task": "Check every claim in scripts/queue/*.json against its sources; fix or delete anything unverifiable. Reject clickbait titles that the video does not deliver on (YouTube policy). Validate each file with: python -m faceless.check scripts/queue"
+    }
+  ]
+}
