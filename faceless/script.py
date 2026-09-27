@@ -74,6 +74,21 @@ def _wiki_summary(title):
     return r.json() if r.ok else None
 
 
+def _wiki_intro(title):
+    """Full lead section as plain text (the summary endpoint is often only 1-2 sentences)."""
+    try:
+        r = requests.get(
+            "https://en.wikipedia.org/w/api.php",
+            headers=UA,
+            timeout=20,
+            params={"action": "query", "prop": "extracts", "exintro": 1, "explaintext": 1, "redirects": 1, "titles": title, "format": "json"},
+        )
+        pages = r.json()["query"]["pages"]
+        return next(iter(pages.values())).get("extract", "")
+    except (requests.RequestException, ValueError, KeyError):
+        return ""
+
+
 # ---------------------------------------------------------------- LLM
 def _pick_provider(cfg):
     want = cfg["llm"].get("provider", "auto")
@@ -104,20 +119,32 @@ def _llm_script(cfg, provider, topic, page):
     # free tiers often answer 429/503 when busy: retry, then try the lighter fallback model
     for m in [model, *FALLBACK_MODELS.get(provider, [])]:
         for attempt in range(3):
-            r = requests.post(
-                f"{base}/chat/completions",
-                headers=headers,
-                timeout=120,
-                json={"model": m, "temperature": 0.8, "messages": [{"role": "user", "content": prompt}]},
-            )
+            try:
+                r = requests.post(
+                    f"{base}/chat/completions",
+                    headers=headers,
+                    timeout=120,
+                    json={"model": m, "temperature": 0.8, "messages": [{"role": "user", "content": prompt}]},
+                )
+            except requests.RequestException as e:  # connection resets / timeouts are worth retrying too
+                print(f"[script] {m} connection error ({e}), attempt {attempt + 1}")
+                time.sleep(10 * (attempt + 1))
+                continue
             if r.ok:
-                text = r.json()["choices"][0]["message"]["content"]
-                return json.loads(re.search(r"\{.*\}", text, re.S).group(0))
+                try:
+                    text = r.json()["choices"][0]["message"]["content"]
+                    script = json.loads(re.search(r"\{.*\}", text, re.S).group(0))
+                    if len(script.get("scenes", [])) >= 3:
+                        return script
+                except (ValueError, KeyError, AttributeError):
+                    pass
+                print(f"[script] {m} returned an unusable script, attempt {attempt + 1}")
+                continue
             print(f"[script] {m} answered {r.status_code}, attempt {attempt + 1}")
-            if r.status_code not in (429, 500, 503):
+            if r.status_code not in (429, 500, 502, 503, 504):
                 break
             time.sleep(10 * (attempt + 1))
-    r.raise_for_status()
+    raise RuntimeError(f"{provider}: no usable answer after retries")
 
 
 # ---------------------------------------------------------------- no-key fallback
@@ -131,7 +158,8 @@ HOOKS = [
 def _template_script(topic, page):
     """No LLM available: build a script straight from the Wikipedia summary."""
     page = page or _wiki_summary(topic) or {"extract": topic, "title": topic}
-    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", page["extract"]) if len(s.strip()) > 20][:6]
+    text = _wiki_intro(page["title"]) or page["extract"]
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if len(s.strip()) > 20][:7]
     words = re.findall(r"[A-Za-z]{5,}", " ".join(sentences))
     common = {w for w in words if words.count(w) > 1} or set(words[:6])
     scenes = [{"text": random.choice(HOOKS).format(t=page["title"]), "search": [page["title"]]}]
