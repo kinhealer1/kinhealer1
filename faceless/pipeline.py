@@ -49,8 +49,8 @@ def run(args):
         work = Path(tmp)
         scenes = narrate(script["scenes"], cfg, work, offline=args.offline)
         total = sum(s["duration"] for s in scenes)
-        if cfg["format"] == "short" and total > 59:
-            print(f"[warn] {total:.0f}s is over 60s, YouTube may not treat it as a Short")
+        if cfg["format"] == "short" and total > 179:
+            print(f"[warn] {total:.0f}s is over 3 minutes, the YouTube Shorts limit")
         fetch_visuals(scenes, script, cfg, dims, work, offline=args.offline)
         render(scenes, cfg, dims, work, video)
     print(f"[render] {video} ({total:.1f}s)")

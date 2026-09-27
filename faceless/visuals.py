@@ -84,9 +84,13 @@ def fetch_visuals(scenes, script, cfg, size, workdir, offline=False):
                     break
         if not scene["visual"] and not offline:
             if wiki_img is None:
-                page = _wiki_summary(script["topic"]) or {}
-                src = (page.get("originalimage") or page.get("thumbnail") or {}).get("source")
-                wiki_img = _download(src, workdir / "wiki.jpg") if src else ""
+                try:
+                    page = _wiki_summary(script["topic"]) or {}
+                    src = (page.get("originalimage") or page.get("thumbnail") or {}).get("source")
+                    wiki_img = _download(src, workdir / "wiki.jpg") if src else ""
+                except requests.RequestException as e:
+                    print(f"[visuals] wikimedia error: {e}")
+                    wiki_img = ""
             scene["visual"] = wiki_img or None
         if not scene["visual"]:
             scene["visual"] = gradient_card(workdir / f"card_{i:02d}.jpg", size, seed=i)

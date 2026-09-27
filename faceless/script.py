@@ -3,6 +3,7 @@ import json
 import os
 import random
 import re
+import time
 
 import requests
 
@@ -15,6 +16,8 @@ PROVIDERS = {
     "groq": ("https://api.groq.com/openai/v1", "GROQ_API_KEY", "llama-3.3-70b-versatile"),
     "ollama": ("http://localhost:11434/v1", None, "llama3.2"),
 }
+
+FALLBACK_MODELS = {"gemini": ["gemini-flash-lite-latest"], "groq": ["llama-3.1-8b-instant"]}
 
 PROMPT = """You write scripts for a faceless YouTube Shorts channel about: {niche}.
 Topic for this video: {topic}
@@ -60,11 +63,14 @@ def _wiki_random():
 
 
 def _wiki_summary(title):
-    r = requests.get(
-        "https://en.wikipedia.org/api/rest_v1/page/summary/" + requests.utils.quote(title.replace(" ", "_")),
-        headers=UA,
-        timeout=20,
-    )
+    try:
+        r = requests.get(
+            "https://en.wikipedia.org/api/rest_v1/page/summary/" + requests.utils.quote(title.replace(" ", "_")),
+            headers=UA,
+            timeout=20,
+        )
+    except requests.RequestException:
+        return None
     return r.json() if r.ok else None
 
 
@@ -94,21 +100,24 @@ def _llm_script(cfg, provider, topic, page):
     model = cfg["llm"].get("model", model)
     context = f"\nBackground facts (stay accurate to these):\n{page['extract']}\n" if page else ""
     headers = {"Authorization": f"Bearer {os.getenv(key_env)}"} if key_env else {}
-    r = requests.post(
-        f"{base}/chat/completions",
-        headers=headers,
-        timeout=120,
-        json={
-            "model": model,
-            "temperature": 0.8,
-            "messages": [
-                {"role": "user", "content": PROMPT.format(niche=cfg["niche"], topic=topic, words=cfg["target_words"]) + context}
-            ],
-        },
-    )
+    prompt = PROMPT.format(niche=cfg["niche"], topic=topic, words=cfg["target_words"]) + context
+    # free tiers often answer 429/503 when busy: retry, then try the lighter fallback model
+    for m in [model, *FALLBACK_MODELS.get(provider, [])]:
+        for attempt in range(3):
+            r = requests.post(
+                f"{base}/chat/completions",
+                headers=headers,
+                timeout=120,
+                json={"model": m, "temperature": 0.8, "messages": [{"role": "user", "content": prompt}]},
+            )
+            if r.ok:
+                text = r.json()["choices"][0]["message"]["content"]
+                return json.loads(re.search(r"\{.*\}", text, re.S).group(0))
+            print(f"[script] {m} answered {r.status_code}, attempt {attempt + 1}")
+            if r.status_code not in (429, 500, 503):
+                break
+            time.sleep(10 * (attempt + 1))
     r.raise_for_status()
-    text = r.json()["choices"][0]["message"]["content"]
-    return json.loads(re.search(r"\{.*\}", text, re.S).group(0))
 
 
 # ---------------------------------------------------------------- no-key fallback
