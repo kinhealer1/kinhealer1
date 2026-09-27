@@ -40,7 +40,8 @@ Changing it starts a new run, but only audio without an output yet gets converte
 - The GitHub website only accepts uploads up to **25 MB**. Most `.pth` files are bigger (around 55 MB),
   so push them with `git` or [GitHub Desktop](https://desktop.github.com/) instead (up to 100 MB per file).
 - Alternatively, list download links in [`models/download.txt`](models/download.txt) (`.pth`, `.index`
-  or a `.zip` of both, e.g. from Hugging Face). They are fetched at run time and never stored in the repo.
+  or a `.zip` of both, e.g. from Google Drive or Hugging Face). They are fetched at run time and never
+  stored in the repo. For Google Drive, share each file with "Anyone with the link" and paste its link.
 - Keep the repo **private** if the voices or recordings are personal.
 
 ## Limits

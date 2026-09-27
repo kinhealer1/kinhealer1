@@ -1,8 +1,13 @@
 # Optional: links to models the Action should download before converting.
 # One URL per line: a .pth, a .index, or a .zip containing them.
-# Handy for models hosted on Hugging Face or other sites, or files too big to
+# Handy for models hosted on Google Drive, Hugging Face or other sites, or files too big to
 # upload through the GitHub website (25 MB limit there).
 # Lines starting with # are ignored.
 #
-# Example:
+# Google Drive: in Drive, tap the file's menu > Share, set General access to
+# "Anyone with the link", then Copy link and paste it here. Share each file
+# (the .pth and the .index) separately; folder links do not work.
+#
+# Examples:
+# https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/view?usp=sharing
 # https://huggingface.co/someone/some-voice/resolve/main/some-voice.zip

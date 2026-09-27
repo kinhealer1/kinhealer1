@@ -7,10 +7,12 @@ Called by .github/workflows/rvc.yml. Layout:
 """
 
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -35,6 +37,47 @@ def setting(name, default):
     return value if value else default
 
 
+def google_drive_id(url):
+    """Return the file ID of a Google Drive share link, or None for other links."""
+    parsed = urllib.parse.urlparse(url)
+    if not parsed.netloc.endswith(("drive.google.com", "docs.google.com",
+                                   "drive.usercontent.google.com")):
+        return None
+    match = re.search(r"/file/d/([\w-]+)", parsed.path)
+    if match:
+        return match.group(1)
+    ids = urllib.parse.parse_qs(parsed.query).get("id")
+    return ids[0] if ids else None
+
+
+def download_google_drive(file_id, url):
+    """Download a Drive file into its own folder, keeping its real name."""
+    folder = DOWNLOADS / ("gdrive-" + file_id)
+    if folder.is_dir():
+        files = [path for path in folder.iterdir()
+                 if path.is_file() and not path.name.startswith(".")]
+        if files:
+            return files[0]
+    print("Downloading %s from Google Drive" % url)
+    # This endpoint skips the "can't scan for viruses" page for big files.
+    direct = ("https://drive.usercontent.google.com/download?export=download&confirm=t&id="
+              + urllib.parse.quote(file_id))
+    with urllib.request.urlopen(direct) as response:
+        if response.headers.get_content_type() == "text/html":
+            raise SystemExit(
+                "::error::Could not download %s. In Google Drive, open Share and set "
+                "General access to 'Anyone with the link'. Folder links are not "
+                "supported; share each file." % url)
+        name = response.headers.get_filename() or (file_id + ".pth")
+        folder.mkdir(parents=True, exist_ok=True)
+        target = folder / Path(name).name
+        partial = folder / (".partial-" + target.name)
+        with open(partial, "wb") as handle:
+            shutil.copyfileobj(response, handle)
+    partial.rename(target)
+    return target
+
+
 def download_models():
     lines = []
     for folder in MODEL_DIRS:
@@ -45,14 +88,22 @@ def download_models():
         url = line.strip()
         if not url or url.startswith("#"):
             continue
-        name = url.split("?")[0].rstrip("/").rsplit("/", 1)[-1]
-        target = DOWNLOADS / name
-        if not target.exists():
-            print("Downloading %s" % url)
-            DOWNLOADS.mkdir(parents=True, exist_ok=True)
-            urllib.request.urlretrieve(url, target)
+        file_id = google_drive_id(url)
+        if "/folders/" in url:
+            print("::warning::Skipping %s: Google Drive folder links are not supported; "
+                  "share each file instead." % url)
+            continue
+        if file_id:
+            target = download_google_drive(file_id, url)
+        else:
+            name = url.split("?")[0].rstrip("/").rsplit("/", 1)[-1]
+            target = DOWNLOADS / name
+            if not target.exists():
+                print("Downloading %s" % url)
+                DOWNLOADS.mkdir(parents=True, exist_ok=True)
+                urllib.request.urlretrieve(url, target)
         if target.suffix.lower() == ".zip":
-            extract_dir = DOWNLOADS / target.stem
+            extract_dir = target.with_suffix("")
             if not extract_dir.exists():
                 with zipfile.ZipFile(target) as archive:
                     archive.extractall(extract_dir)
