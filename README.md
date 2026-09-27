@@ -17,7 +17,7 @@ topic ─► script ─► voice ─► footage ─► captions + render ─► 
 | Scheduler + render machine | GitHub Actions (2,000 min/month free on private repos, unlimited on public) | free |
 | Script | ruflo swarm in Claude Code, **or** Gemini / Groq free API tier, **or** local Ollama, **or** a no-key Wikipedia template | free |
 | Voice | `edge-tts` (Microsoft Edge neural voices, no key), falls back to Gemini TTS (one request per video, 4 models × 10 free requests/day), then espeak-ng | free |
-| Footage | Pexels API (free key), falls back to a Wikimedia image, then a generated background | free |
+| Visuals | **AI images** in one art style with animated camera moves: Cloudflare Workers AI (free account) or Pollinations.ai (no key). Falls back to Pexels stock footage, then a Wikimedia image | free |
 | Captions and editing | ffmpeg + libass | free |
 | Upload | YouTube Data API v3 (about 6 uploads/day on the default quota) | free |
 
@@ -29,6 +29,15 @@ topic ─► script ─► voice ─► footage ─► captions + render ─► 
   (or Groq: <https://console.groq.com/keys> → `GROQ_API_KEY`)
 
 Add secrets in GitHub under **Settings → Secrets and variables → Actions → New repository secret**.
+
+### AI images (optional but recommended)
+The default `visuals: ai` works without any setup through Pollinations.ai, which is free
+but rate-limited and sometimes slow. For more reliable images, create a free Cloudflare account:
+1. Sign up at <https://dash.cloudflare.com/sign-up>. No card is needed for the Workers AI free allowance.
+2. Copy your **Account ID** from the dashboard sidebar → secret `CF_ACCOUNT_ID`.
+3. Go to **My Profile → API Tokens → Create Token → Workers AI** template → secret `CF_API_TOKEN`.
+
+Change the look of the whole channel with `art_style` in `channel.yaml`, or set `visuals: stock` for Pexels footage.
 
 ### 2. YouTube upload access (one time, on your own computer)
 1. Go to <https://console.cloud.google.com/>, create a project, and enable **YouTube Data API v3**.

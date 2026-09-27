@@ -15,6 +15,8 @@ DEFAULTS = {
     "category_id": "27",  # Education
     "made_for_kids": False,
     "subtitle_font": "DejaVu Sans",
+    "visuals": "ai",  # ai = AI-generated images (free), stock = Pexels footage
+    "art_style": "cinematic digital painting, dramatic lighting, rich colors, highly detailed, consistent style",
     "llm": {
         # Any OpenAI-compatible endpoint. All of these have free tiers / are free:
         #   gemini: https://generativelanguage.googleapis.com/v1beta/openai  (GEMINI_API_KEY)

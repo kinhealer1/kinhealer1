@@ -24,15 +24,18 @@ Topic for this video: {topic}
 
 Write a punchy narration of about {words} words. Start with a strong hook in the
 first sentence, no greetings, no "in this video". End with a short question to
-drive comments. Split it into 5-8 scenes. For each scene give 1-3 short, concrete
-stock-footage search terms (things a camera can film, e.g. "ancient ruins",
-"ocean waves", not abstract ideas).
+drive comments. Split it into 5-8 scenes. For each scene give:
+- "image": a prompt for an AI image generator showing that moment as one vivid,
+  concrete picture (who/what, where, era, action, camera angle, lighting). Keep
+  characters, places and period consistent between scenes. No text, captions,
+  logos or real living people's names in the image.
+- "search": 1-3 short, concrete stock-footage search terms (backup visuals).
 
 Reply with JSON only, in this exact shape:
 {{"title": "<max 90 chars, curiosity-driven, no clickbait lies>",
   "description": "<2-3 sentences>",
   "tags": ["tag1", "tag2", "..."],
-  "scenes": [{{"text": "<narration>", "search": ["term", "term"]}}]}}
+  "scenes": [{{"text": "<narration>", "image": "<image prompt>", "search": ["term", "term"]}}]}}
 """
 
 
@@ -165,7 +168,7 @@ def _template_script(topic, page):
     scenes = [{"text": random.choice(HOOKS).format(t=page["title"]), "search": [page["title"]]}]
     for s in sentences:
         terms = [w for w in re.findall(r"[A-Za-z]{5,}", s) if w in common][:2] or [page["title"]]
-        scenes.append({"text": s, "search": terms})
+        scenes.append({"text": s, "search": terms, "image": f"{page['title']}: {s}"})
     scenes.append({"text": "Did you already know this? Tell me in the comments.", "search": [page["title"]]})
     return {
         "title": f"The surprising truth about {page['title']}"[:95],

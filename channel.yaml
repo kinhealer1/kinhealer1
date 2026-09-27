@@ -8,5 +8,10 @@ privacy: private            # start private, review a few, then switch to public
 category_id: "27"           # 27 = Education, 28 = Science & Technology, 24 = Entertainment
 made_for_kids: false
 subtitle_font: DejaVu Sans
+visuals: ai                 # ai = AI-generated images, stock = Pexels stock footage
+# One style for every image keeps the channel recognisable. Examples:
+#   "cinematic digital painting, dramatic lighting"   "Pixar-style 3D render, soft light"
+#   "dark moody oil painting"   "anime style, vibrant colors"   "vintage 1930s photograph"
+art_style: "cinematic digital painting, dramatic lighting, rich colors, highly detailed"
 llm:
   provider: auto            # auto | gemini | groq | ollama (auto falls back to a Wikipedia template)

@@ -13,7 +13,7 @@
       "name": "Script writing",
       "agent": "coder",
       "dependsOn": ["research"],
-      "task": "For each topic write scripts/queue/<YYYYMMDD>-<slug>.json matching scripts/example.json: 110-140 words total, first sentence is the hook, 5-8 scenes, 1-3 concrete stock-footage search terms per scene, last scene asks a question. Put sources at the end of the description."
+      "task": "For each topic write scripts/queue/<YYYYMMDD>-<slug>.json matching scripts/example.json: 110-140 words total, first sentence is the hook, 5-8 scenes, an \"image\" prompt per scene for the AI image generator (same characters, place and era across scenes, no text in the image) plus 1-3 concrete stock-footage search terms as backup, last scene asks a question. Put sources at the end of the description."
     },
     {
       "id": "review",

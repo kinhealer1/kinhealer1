@@ -7,21 +7,31 @@ from .media import duration, ffmpeg
 FPS = 30
 
 
-def _segment(scene, size, out):
+# Camera moves over still images, cycled per scene so AI images feel animated.
+# Each is (zoom, x, y) for ffmpeg zoompan; P runs 0 -> 1 over the scene.
+MOTIONS = [
+    ("1+0.20*P", "iw/2-(iw/zoom/2)", "ih/2-(ih/zoom/2)"),  # slow push in
+    ("1.20-0.20*P", "iw/2-(iw/zoom/2)", "ih/2-(ih/zoom/2)"),  # pull out
+    ("1.18", "(iw-iw/zoom)*P", "ih/2-(ih/zoom/2)"),  # pan right
+    ("1+0.12*P", "iw/2-(iw/zoom/2)", "(ih-ih/zoom)*(1-P)"),  # tilt up while pushing in
+    ("1.18", "(iw-iw/zoom)*(1-P)", "ih/2-(ih/zoom/2)"),  # pan left
+]
+
+
+def _segment(scene, size, out, index=0):
     w, h = size
     dur = f"{scene['duration']:.3f}"
     if scene["kind"] == "video":
         inputs = ["-stream_loop", "-1", "-i", scene["visual"]]
         vf = f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},fps={FPS},setsar=1"
     else:
-        # Ken Burns: slow zoom into a still image
         frames = int(scene["duration"] * FPS) + 1
+        z, x, y = (part.replace("P", f"(on/{frames})") for part in MOTIONS[index % len(MOTIONS)])
+        big_w, big_h = int(w * 2), int(h * 2)  # oversample so zoompan moves smoothly
         inputs = ["-i", scene["visual"]]
         vf = (
-            f"scale={int(w * 1.5)}:{int(h * 1.5)}:force_original_aspect_ratio=increase,"
-            f"crop={int(w * 1.5)}:{int(h * 1.5)},"
-            f"zoompan=z='1+0.18*on/{frames}':d={frames}:s={w}x{h}:fps={FPS}"
-            ":x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',setsar=1"
+            f"scale={big_w}:{big_h}:force_original_aspect_ratio=increase,crop={big_w}:{big_h},"
+            f"zoompan=z='{z}':d={frames}:s={w}x{h}:fps={FPS}:x='{x}':y='{y}',setsar=1"
         )
     ffmpeg(
         *inputs, "-i", scene["audio"],
@@ -69,7 +79,7 @@ def render(scenes, cfg, size, workdir, out):
     parts = []
     for i, scene in enumerate(scenes):
         part = workdir / f"seg_{i:02d}.mp4"
-        _segment(scene, size, part)
+        _segment(scene, size, part, i)
         parts.append(part)
     listing = workdir / "concat.txt"
     listing.write_text("".join(f"file '{p.name}'\n" for p in parts))

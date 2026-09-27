@@ -69,8 +69,18 @@ def fetch_visuals(scenes, script, cfg, size, workdir, offline=False):
     portrait = size[1] > size[0]
     used = set()
     wiki_img = None
+    ai = cfg.get("visuals", "stock") == "ai"
     for i, scene in enumerate(scenes):
         scene["visual"], scene["kind"] = None, "image"
+        if ai and not offline:
+            from .aiimages import generate
+
+            prompt = scene.get("image") or f"{script['topic']}: {scene['text']}"
+            path, provider = generate(prompt, cfg["art_style"], str(workdir / f"ai_{i:02d}.jpg"), size, seed=cfg.get("seed", 1000) + i)
+            if path:
+                scene["visual"], scene["kind"] = path, "ai"
+                print(f"[visuals] scene {i}: ai image via {provider}")
+                continue
         if not offline and cfg["pexels_key"]:
             for term in scene.get("search", []) + [script["topic"]]:
                 try:
