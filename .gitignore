@@ -4,3 +4,5 @@ __pycache__/
 client_secret*.json
 .env
 .claude-flow/
+.swarm/
+ruvector.db
