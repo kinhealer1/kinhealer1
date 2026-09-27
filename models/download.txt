@@ -14,3 +14,7 @@
 # https://huggingface.co/someone/some-voice/resolve/main/some-voice.zip
 
 https://drive.google.com/file/d/14wGmV7LvKOQWGNzCAw9svw5dZHnuJKQB/view?usp=drivesdk
+https://drive.google.com/file/d/14irQbcnCpHSSrobLv7Ha7PVnLHX_Smfv/view?usp=drivesdk
+https://drive.google.com/file/d/14NU9B54zG0ejOu8LP2v75LdePROflD1J/view?usp=drivesdk
+https://drive.google.com/file/d/14QEevZCVk-EeLEsBRnHPUq1Dxuevj7Nc/view?usp=drivesdk
+https://drive.google.com/file/d/14K_7cLM2vHNlm4EEBi6P8a9qC6LCVWon/view?usp=drivesdk

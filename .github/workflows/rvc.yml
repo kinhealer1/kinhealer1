@@ -92,6 +92,8 @@ jobs:
           python scripts/rvc_convert.py
 
       - name: Commit results
+        # Save whatever converted, even if one model failed.
+        if: ${{ !cancelled() }}
         run: |
           git add output
           if git diff --cached --quiet; then

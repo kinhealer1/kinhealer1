@@ -27,6 +27,7 @@ Put audio in a subfolder named after the model and it will use that model:
 input/song.wav          -> DEFAULT_MODEL (or the only model, if there is just one)
 input/MyVoice/song.wav  -> models/MyVoice.pth
 input/Other/talk.mp3    -> models/Other.pth
+input/_all/song.wav     -> every model (to compare them)
 ```
 
 ## Settings

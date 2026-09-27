@@ -3,6 +3,7 @@
 Called by .github/workflows/rvc.yml. Layout:
   input/<file>          -> converted with DEFAULT_MODEL
   input/<model>/<file>  -> converted with models/**/<model>.pth
+  input/_all/<file>     -> converted with every model (handy for comparing)
   output/<model>/<file> -> results; files that already exist are skipped
 """
 
@@ -26,6 +27,7 @@ OUTPUT = ROOT / "output"
 RVC_DIR = (ROOT / os.environ.get("RVC_DIR", "rvc")).resolve()
 RVC_CLI = RVC_DIR / "infer" / "cli.py"
 DOWNLOADS = MODELS / ".downloads"
+ALL_MODELS_FOLDER = "_all"
 
 AUDIO_EXTENSIONS = {
     ".wav", ".flac", ".mp3", ".m4a", ".ogg", ".opus",
@@ -114,9 +116,19 @@ def model_files(pattern):
     return [path for folder in MODEL_DIRS for path in sorted(folder.rglob(pattern))]
 
 
+def is_training_checkpoint(path):
+    # RVC training also saves G_400.pth / D_400.pth (or Name_G_400.pth); these
+    # can't convert audio, only the exported model can.
+    return re.search(r"(^|_)[GD]_\d+$", path.stem) is not None
+
+
 def find_models():
     models = {}
     for path in model_files("*.pth"):
+        if is_training_checkpoint(path):
+            print("::warning::Skipping %s: it is a training checkpoint, not a voice model."
+                  % path.name)
+            continue
         models.setdefault(path.stem, path)
     return models
 
@@ -127,6 +139,13 @@ def find_index(model_path):
         path for path in model_files("*.index")
         if stem in path.stem.lower() and "trained" not in path.stem.lower()
     ]
+    # Then the name without its epoch number (Celi400.pth -> *celi*.index).
+    base = re.sub(r"[\W_]*\d+$", "", stem)
+    if not candidates and len(base) >= 3:
+        candidates = [
+            path for path in model_files("*.index")
+            if base in path.stem.lower() and "trained" not in path.stem.lower()
+        ]
     # Fall back to an index sitting next to the model (e.g. from the same zip).
     if not candidates:
         candidates = [
@@ -144,17 +163,21 @@ def collect_jobs(models, default_model, output_format):
             continue
         relative = path.relative_to(INPUT)
         model_name = relative.parts[0] if len(relative.parts) > 1 else default_model
-        if not model_name:
+        if model_name == ALL_MODELS_FOLDER:
+            names = list(models)
+        elif not model_name:
             print("::warning::Skipping %s: set DEFAULT_MODEL in rvc-settings.env "
                   "or put it in input/<model-name>/" % relative)
             continue
-        if model_name not in models:
+        elif model_name not in models:
             print("::warning::Skipping %s: no models/**/%s.pth found" % (relative, model_name))
             continue
-        output_file = OUTPUT / model_name / relative.with_suffix("." + output_format).name
-        if output_file.exists():
-            continue
-        jobs.setdefault(model_name, []).append(path)
+        else:
+            names = [model_name]
+        for name in names:
+            output_file = OUTPUT / name / relative.with_suffix("." + output_format).name
+            if not output_file.exists():
+                jobs.setdefault(name, []).append(path)
     return jobs
 
 
