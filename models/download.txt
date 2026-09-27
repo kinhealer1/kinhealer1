@@ -11,3 +11,5 @@
 # Examples:
 # https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/view?usp=sharing
 # https://huggingface.co/someone/some-voice/resolve/main/some-voice.zip
+
+https://drive.google.com/file/d/14wGmV7LvKOQWGNzCAw9svw5dZHnuJKQB/view?usp=drivesdk
